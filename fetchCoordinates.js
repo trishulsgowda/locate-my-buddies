@@ -14,7 +14,7 @@ function haversine(lat1, lon1, lat2, lon2){
     return distance;
   };
   
-  function filterCoordinatesWithinRadius(centerLat, centerLon, radiusKm = 5){
+  function filterCoordinatesWithinRadius(centerLat, centerLon, radiusKm = 5, storedLocations){
 
     const coordinates = [
         { lat: 13.069154, lng: 77.502401, label: 'Zeal' },
@@ -26,9 +26,9 @@ function haversine(lat1, lon1, lat2, lon2){
         { lat: 13.046357, lng: 77.512782, label: 'Golden Sports' }
     ];
 
-    return coordinates.filter(coord => {
+    return storedLocations.filter(coord => {
       //const [lat, lon] = coord;
-      const distance = haversine(centerLat, centerLon, coord.lat, coord.lng);
+      const distance = haversine(centerLat, centerLon, coord.latitude, coord.longitude);
       //console.log(coord.label +" is at a distance of " + distance);
       return distance <= radiusKm;
     });

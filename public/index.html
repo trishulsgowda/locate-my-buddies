@@ -18,8 +18,15 @@
     <input type="number" id="radius" name="radius" min="1" value="2">
     <button onclick="updateMap()">Update Map</button>
 
+    <!-- Form to capture user's name -->
+    <form id="user-form">
+        <label for="name">Your Name:</label>
+        <input type="text" id="name" name="name" required>
+        <button type="submit">Submit</button>
+    </form>
+
     <!-- Include the Google Maps JavaScript API with your API key -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCgEHuudQacAC6SSn2-T01dMr79lpRZlPE&callback=initMap" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=<API_KEY>>&callback=initMap" async defer></script>
 
     <!-- Initialize and add the map -->
     <script>
@@ -59,10 +66,10 @@
                             coordinates.forEach(coord => {
                                 console.log('Adding marker:', coord); // Debug log
                                 const marker = new google.maps.Marker({
-                                    position: { lat: coord.lat, lng: coord.lng },
+                                    position: { lat: coord.latitude, lng: coord.longitude },
                                     map: map,
-                                    title: `Latitude: ${coord.lat}, Longitude: ${coord.lng}`,
-                                    label: coord.label
+                                    title: `Latitude: ${coord.latitude}, Longitude: ${coord.longitude}`,
+                                    label: coord.name
                                 });
                                 mapMarkers.push(marker);
                             });
@@ -112,10 +119,10 @@
                     coordinates.forEach(coord => {
                         console.log('Adding marker:', coord); // Debug log
                         const marker = new google.maps.Marker({
-                            position: { lat: coord.lat, lng: coord.lng },
+                            position: { lat: coord.latitude, lng: coord.longitude },
                             map: map,
-                            title: `Latitude: ${coord.lat}, Longitude: ${coord.lng}`,
-                            label: coord.label
+                            title: `Latitude: ${coord.latitude}, Longitude: ${coord.longitude}`,
+                            label: coord.name
                         });
                         mapMarkers.push(marker);
                     });
@@ -144,6 +151,35 @@
 
         // Ensure initMap is called after the API script is loaded
         window.initMap = initMap;
+
+        // Add event listener for form submission
+        document.getElementById('user-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+
+                    // Send the user's name and location to the server
+                    fetch('/api/store-location', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ name, latitude, longitude })
+                    })
+                    .then(response => response.text())
+                    .then(message => {
+                        console.log(message); // Log the server's response
+                        alert('Location stored successfully');
+                    })
+                    .catch(error => console.error('Error storing location:', error));
+                });
+            } else {
+                alert('Geolocation is not supported by your browser.');
+            }
+        });
     </script>
 </body>
 </html>
