@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Map with Google Maps</title>
+    <style>
+        /* Set the size of the map div */
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- The div element where the map will be displayed -->
+    <div id="map"></div>
+
+    <!-- Include the Google Maps JavaScript API with your API key -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=<API_KEY>&callback=initMap" async defer></script>
+
+    <!-- Initialize and add the map -->
+    <script>
+        // Initialize the map
+        function initMap() {
+            console.log('initMap called'); // Debug log
+
+            // Fetch coordinates from the server
+            fetch('/api/coordinates')
+                .then(response => response.json())
+                .then(coordinates => {
+                    console.log('Coordinates fetched:', coordinates); // Debug log
+
+                    // The map, centered at the first coordinate
+                    const map = new google.maps.Map(document.getElementById('map'), {
+                        zoom: 14,
+                        center: coordinates[0]
+                    });
+
+                    // Add markers to the map
+                    coordinates.forEach(coord => {
+                        console.log('Adding marker:', coord); // Debug log
+                        new google.maps.Marker({
+                            position: { lat: coord.lat, lng: coord.lng },
+                            map: map,
+                            title: `Latitude: ${coord.lat}, Longitude: ${coord.lng}`,
+                            label: coord.label
+                        });
+                    });
+
+                    // Use the Geolocation API to get the user's current position
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(position => {
+                            const userLocation = {
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude
+                            };
+
+                            // Add a marker for the user's location
+                            new google.maps.Marker({
+                                position: userLocation,
+                                map: map,
+                                title: 'Your Location',
+                                label: 'You'
+                            });
+
+                            // Center the map on the user's location
+                            map.setCenter(userLocation);
+                        }, () => {
+                            handleLocationError(true, map.getCenter());
+                        });
+                    } else {
+                        // Browser doesn't support Geolocation
+                        handleLocationError(false, map.getCenter());
+                    }
+                })
+                .catch(error => console.error('Error fetching coordinates:', error));
+        }
+
+        // Handle Geolocation errors
+        function handleLocationError(browserHasGeolocation, pos) {
+            console.error(browserHasGeolocation
+                ? 'Error: The Geolocation service failed.'
+                : 'Error: Your browser doesn\'t support geolocation.');
+        }
+
+        // Ensure initMap is called after the API script is loaded
+        window.initMap = initMap;
+    </script>
+</body>
+</html>
