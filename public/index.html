@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Map with Google Maps</title>
+    <title>Locate My Buddies</title>
     <style>
         /* Set the size of the map div */
         #map {
@@ -14,63 +14,123 @@
     <!-- The div element where the map will be displayed -->
     <div id="map"></div>
 
+    <label for="radius">Enter radius (km):</label>
+    <input type="number" id="radius" name="radius" min="1" value="2">
+    <button onclick="updateMap()">Update Map</button>
+
     <!-- Include the Google Maps JavaScript API with your API key -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=<API_KEY>&callback=initMap" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCgEHuudQacAC6SSn2-T01dMr79lpRZlPE&callback=initMap" async defer></script>
 
     <!-- Initialize and add the map -->
     <script>
-        // Initialize the map
+
+        let map; // Declare map variable outside initMap
+        let centerLat;
+        let centerLong;
+        let mapMarkers = [];
+        
+        // Function to initialize the map
         function initMap() {
             console.log('initMap called'); // Debug log
 
-            // Fetch coordinates from the server
-            fetch('/api/coordinates')
+            // Check if the browser supports geolocation
+            if (navigator.geolocation) {
+                // Get the user's current position
+                navigator.geolocation.getCurrentPosition(position => {
+                    const initialLat = position.coords.latitude;
+                    const initialLng = position.coords.longitude;
+                    const initialRadius = parseFloat(document.getElementById('radius').value); // Get radius from input
+
+                    centerLat = initialLat;
+                    centerLong = initialLng;
+                    // Fetch coordinates from the server
+                    fetch(`/api/coordinates?latitude=${initialLat}&longitude=${initialLng}&radius=${initialRadius}`)
+                        .then(response => response.json())
+                        .then(coordinates => {
+                            console.log('Coordinates fetched:', coordinates); // Debug log
+
+                            // The map, centered at the user's location
+                                map = new google.maps.Map(document.getElementById('map'), {
+                                zoom: 14,
+                                center: { lat: initialLat, lng: initialLng }
+                            });
+
+                            // Add markers to the map
+                            coordinates.forEach(coord => {
+                                console.log('Adding marker:', coord); // Debug log
+                                const marker = new google.maps.Marker({
+                                    position: { lat: coord.lat, lng: coord.lng },
+                                    map: map,
+                                    title: `Latitude: ${coord.lat}, Longitude: ${coord.lng}`,
+                                    label: coord.label
+                                });
+                                mapMarkers.push(marker);
+                            });
+
+                            // Add a marker for the user's location
+                            const userMarker = new google.maps.Marker({
+                                position: { lat: initialLat, lng: initialLng },
+                                map: map,
+                                title: 'Your Location',
+                                label: 'You'
+                            });
+                            mapMarkers.push(userMarker);
+
+                            // Center the map on the user's location
+                            map.setCenter({ lat: initialLat, lng: initialLng });
+                            console.log("Center is :" + map.getCenter());
+                        })
+                        .catch(error => console.error('Error fetching coordinates:', error));
+                }, () => {
+                    handleLocationError(true, map.getCenter());
+                });
+            } else {
+                // Browser doesn't support geolocation
+                handleLocationError(false, map.getCenter());
+            }
+        }
+
+        // Function to update the map with the new radius
+        function updateMap() {
+            const radius = parseFloat(document.getElementById('radius').value);
+            const center = map.getCenter(); // Get the current center of the map
+
+            // Fetch coordinates from the server with the new radius
+            fetch(`/api/coordinates?latitude=${center.lat()}&longitude=${center.lng()}&radius=${radius}`)
                 .then(response => response.json())
                 .then(coordinates => {
                     console.log('Coordinates fetched:', coordinates); // Debug log
 
-                    // The map, centered at the first coordinate
-                    const map = new google.maps.Map(document.getElementById('map'), {
-                        zoom: 14,
-                        center: coordinates[0]
+                    // Remove existing markers
+                    mapMarkers.forEach(marker => {
+                        marker.setMap(null);
                     });
+                    mapMarkers = []; // Clear the markers array
+                   
 
-                    // Add markers to the map
+                    // Add markers for the new coordinates
                     coordinates.forEach(coord => {
                         console.log('Adding marker:', coord); // Debug log
-                        new google.maps.Marker({
+                        const marker = new google.maps.Marker({
                             position: { lat: coord.lat, lng: coord.lng },
                             map: map,
                             title: `Latitude: ${coord.lat}, Longitude: ${coord.lng}`,
                             label: coord.label
                         });
+                        mapMarkers.push(marker);
                     });
 
-                    // Use the Geolocation API to get the user's current position
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(position => {
-                            const userLocation = {
-                                lat: position.coords.latitude,
-                                lng: position.coords.longitude
-                            };
+                    // Add a marker for the user's location again
+                    const userMarker = new google.maps.Marker({
+                        position: { lat: centerLat, lng: centerLong },
+                        map: map,
+                        title: 'Your Location',
+                        label: 'You'
+                    });
+                    mapMarkers.push(userMarker);
 
-                            // Add a marker for the user's location
-                            new google.maps.Marker({
-                                position: userLocation,
-                                map: map,
-                                title: 'Your Location',
-                                label: 'You'
-                            });
-
-                            // Center the map on the user's location
-                            map.setCenter(userLocation);
-                        }, () => {
-                            handleLocationError(true, map.getCenter());
-                        });
-                    } else {
-                        // Browser doesn't support Geolocation
-                        handleLocationError(false, map.getCenter());
-                    }
+                    // Update the map center
+                    map.setCenter(center);
                 })
                 .catch(error => console.error('Error fetching coordinates:', error));
         }

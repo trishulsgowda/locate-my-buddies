@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const port = 3000;
+const { filterCoordinatesWithinRadius} = require('./fetchCoordinates');
 
 /*app.get('/', (req, res) => {
   res.send('<h1>Hello, World!</h1><p>Welcome to my webpage.</p>');
@@ -11,12 +12,19 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // API endpoint to get coordinates
 app.get('/api/coordinates', (req, res) => {
-    const coordinates = [
-        { lat: 13.069154, lng: 77.502401, label: 'Zeal' },
-        { lat: 13.075919, lng: 77.502534, label: 'Chikkabanavara Shuttle' },
-        { lat: 13.063985, lng: 77.504116, label: 'Ace Arena' }
-    ];
-    res.json(coordinates);
+
+    const { latitude, longitude, radius } = req.query;
+
+    if (!latitude || !longitude || !radius) {
+        return res.status(400).json({ error: 'Please provide latitude, longitude, and radius.' });
+    }
+
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+    const rad = parseFloat(radius);
+
+    const filteredCoordinates = filterCoordinatesWithinRadius(lat,lng,rad);
+    res.json(filteredCoordinates);
 });
 
 app.listen(port, () => {
