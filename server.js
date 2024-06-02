@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const app = express();
-const port = 3000;
+const port = 80;
 const { filterCoordinatesWithinRadius} = require('./fetchCoordinates');
 const bodyParser = require('body-parser');
 
@@ -70,6 +70,6 @@ app.get('/api/coordinates', (req, res) => {
     res.json(filteredCoordinates);
 });
 
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server is running at http://0.0.0.0:${port}`);
 });
