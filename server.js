@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const app = express();
@@ -5,6 +6,8 @@ const port = 3000;
 const { filterCoordinatesWithinRadius} = require('./fetchCoordinates');
 const bodyParser = require('body-parser');
 
+
+const apiKey = process.env.GOOGLE_MAPS_API_KEY; // Load the API key from environment variables
 
 let storedLocations = [
     { name: 'Zeal Badminton Academy', latitude: 13.069154, longitude: 77.502401 },
@@ -17,11 +20,27 @@ let storedLocations = [
 ];
 
 
-app.use(express.static(path.join(__dirname, 'public')));
+//app.use(express.static(path.join(__dirname, 'public')));
+
 app.use(bodyParser.json());
+app.get('/locatemybuddies', (req, res) => {
+    const fs = require('fs');
+    const path = require('path');
+
+    fs.readFile(path.join(__dirname, '/public/index.html'), 'utf8', (err, data) => {
+        if (err) {
+            res.status(500).send('Error reading HTML file');
+            return;
+        }
+        const htmlWithApiKey = data.replace('<API_KEY>', apiKey);
+        res.send(htmlWithApiKey);
+    });
+});
 
 // Endpoint to receive and store user data
 app.post('/api/store-location', (req, res) => {
+
+    console.log('Received request:', req.body);
     const { name, latitude, longitude } = req.body;
 
     if (!name || !latitude || !longitude) {
