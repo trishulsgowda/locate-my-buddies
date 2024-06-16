@@ -14,7 +14,9 @@ function getBadmintonCourts(){
         { name: 'Golden Sports Badminton', latitude: 13.046357, longitude: 77.512782 }
     ];
     
-    const filePath = path.join('C:/Users/Thrishul/Desktop/', 'new_locations.csv');
+    // Resolve the public directory path
+    const publicDir = path.resolve(__dirname, 'public');
+    const filePath = path.join(publicDir, 'new_locations.csv');
     
     fs.createReadStream(filePath)
         .pipe(csv(['name', 'latitude', 'longitude']))
