@@ -4,12 +4,17 @@ const path = require('path');
 const app = express();
 const port = 3000;
 const { filterCoordinatesWithinRadius} = require('./fetchCoordinates');
+const { getBadmintonCourts} = require('./badmintonCourtsCache'); 
 const bodyParser = require('body-parser');
 
 
 const apiKey = process.env.GOOGLE_MAPS_API_KEY; // Load the API key from environment variables
 
-let storedLocations = [
+
+
+let storedLocations = getBadmintonCourts();
+
+/* let storedLocations = [
     { name: 'Zeal Badminton Academy', latitude: 13.069154, longitude: 77.502401 },
     { name: 'Chikkabanavara Shuttle Academy', latitude: 13.075919, longitude: 77.502534 },
     { name: 'Ace Arena Badminton Academy', latitude: 13.063985, longitude: 77.504116 },
@@ -17,7 +22,7 @@ let storedLocations = [
     { name: 'Anjanadri Badminton Academy', latitude: 13.042793, longitude: 77.502002 },
     { name: 'Game Point', latitude: 13.081337, longitude: 77.511018 },
     { name: 'Golden Sports Badminton', latitude: 13.046357, longitude: 77.512782 }
-];
+]; */
 
 
 //app.use(express.static(path.join(__dirname, 'public')));

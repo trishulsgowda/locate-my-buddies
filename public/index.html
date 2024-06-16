@@ -5,25 +5,52 @@
     <style>
         /* Set the size of the map div */
         #map {
-            height: 600px;
-            width: 100%;
+            height: 500px;
+            width: 80%;
+        }
+        .map-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 80vh;  /* Adjust the height as needed */
+        }
+        .controls-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px; /* Add space between elements */
+            margin-bottom: 20px; /* Add space below the controls */
+        }
+        #user-form {
+            display: flex;
+            align-items: center;
+            gap: 10px; /* Add space between form elements */
         }
     </style>
 </head>
 <body>
+    
+    <h2 align="center"> Locate your badminton buddies and courts </h2>
+    
+    <div class="controls-container">
+        
+        <!-- Form to capture user's name -->
+        <form id="user-form">
+            <label for="name">Your Name:</label>
+            <input type="text" id="name" name="name" required>
+            <button type="submit">Submit</button>
+        </form>
+        
+        <label for="radius">Enter radius (km):</label>
+        <input type="number" id="radius" name="radius" min="1" value="2">
+        <button onclick="updateMap()">Update Map</button>
+    
+    </div>
+
     <!-- The div element where the map will be displayed -->
-    <div id="map"></div>
-
-    <label for="radius">Enter radius (km):</label>
-    <input type="number" id="radius" name="radius" min="1" value="2">
-    <button onclick="updateMap()">Update Map</button>
-
-    <!-- Form to capture user's name -->
-    <form id="user-form">
-        <label for="name">Your Name:</label>
-        <input type="text" id="name" name="name" required>
-        <button type="submit">Submit</button>
-    </form>
+    <div class="map-container">
+        <div id="map"></div>
+    </div>
 
     <!-- Include the Google Maps JavaScript API with your API key -->
     <script src="https://maps.googleapis.com/maps/api/js?key=<API_KEY>&callback=initMap" async defer></script>
@@ -62,6 +89,20 @@
                                 center: { lat: initialLat, lng: initialLng }
                             });
 
+                            // Create a circle centered at the center point
+                            const circle = new google.maps.Circle({
+                                strokeColor: '#FF0000',
+                                strokeOpacity: 0.8,
+                                strokeWeight: 2,
+                                fillColor: '#FF0000',
+                                fillOpacity: 0.35,
+                                map: map,
+                                center: { lat: initialLat, lng: initialLng },
+                                radius: initialRadius // Radius in meters (3 KM)
+                            });
+
+                            console.log("Circle created:", circle);
+
                             // Add markers to the map
                             coordinates.forEach(coord => {
                                 console.log('Adding marker:', coord); // Debug log
@@ -89,11 +130,12 @@
                         })
                         .catch(error => console.error('Error fetching coordinates:', error));
                 }, () => {
-                    handleLocationError(true, map.getCenter());
+                    alert('Error while getting your location. Please turn on the location sharing');
+                    handleLocationError(true);
                 });
             } else {
                 // Browser doesn't support geolocation
-                handleLocationError(false, map.getCenter());
+                handleLocationError(false);
             }
         }
 
@@ -155,7 +197,13 @@
         // Add event listener for form submission
         document.getElementById('user-form').addEventListener('submit', function(event) {
             event.preventDefault();
-            const name = document.getElementById('name').value;
+
+            const userConsent = confirm("Please select OK if you would like to share your location. By selecting cancel you can still see badminton courts.");
+            if (userConsent) {
+                //alert("Form submitted successfully!");
+                //this.submit(); // Proceed with form submission
+
+                const name = document.getElementById('name').value;
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
                     const latitude = position.coords.latitude;
@@ -172,13 +220,19 @@
                     .then(response => response.text())
                     .then(message => {
                         console.log(message); // Log the server's response
-                        alert('Location stored successfully');
+                        alert('Thank you! Your Location is stored successfully. Your buddies can now locate you');
                     })
                     .catch(error => console.error('Error storing location:', error));
                 });
             } else {
                 alert('Geolocation is not supported by your browser.');
             }
+            } else {
+                alert("Form submission canceled.");
+            }
+
+
+            
         });
     </script>
 </body>
