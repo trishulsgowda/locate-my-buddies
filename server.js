@@ -14,17 +14,6 @@ const apiKey = process.env.GOOGLE_MAPS_API_KEY; // Load the API key from environ
 
 let storedLocations = getBadmintonCourts();
 
-/* let storedLocations = [
-    { name: 'Zeal Badminton Academy', latitude: 13.069154, longitude: 77.502401 },
-    { name: 'Chikkabanavara Shuttle Academy', latitude: 13.075919, longitude: 77.502534 },
-    { name: 'Ace Arena Badminton Academy', latitude: 13.063985, longitude: 77.504116 },
-    { name: 'Accolades Badminton Academy', latitude: 13.047308, longitude: 77.502410 },
-    { name: 'Anjanadri Badminton Academy', latitude: 13.042793, longitude: 77.502002 },
-    { name: 'Game Point', latitude: 13.081337, longitude: 77.511018 },
-    { name: 'Golden Sports Badminton', latitude: 13.046357, longitude: 77.512782 }
-]; */
-
-
 //app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(bodyParser.json());
@@ -46,13 +35,13 @@ app.get('/locatemybuddies', (req, res) => {
 app.post('/api/store-location', (req, res) => {
 
     console.log('Received request:', req.body);
-    const { name, latitude, longitude } = req.body;
+    const { name, latitude, longitude, locationType } = req.body;
 
     if (!name || !latitude || !longitude) {
         return res.status(400).send('Name, latitude, and longitude are required');
     }
 
-    const newLocation = { name, latitude, longitude };
+    const newLocation = { name, latitude, longitude, locationType };
     storedLocations.push(newLocation);
 
     res.status(200).send('Location stored successfully');

@@ -5,8 +5,8 @@
     <style>
         /* Set the size of the map div */
         #map {
-            height: 500px;
-            width: 80%;
+            height: 600px;
+            width: 100%;
         }
         .map-container {
             display: flex;
@@ -86,22 +86,19 @@
                             // The map, centered at the user's location
                                 map = new google.maps.Map(document.getElementById('map'), {
                                 zoom: 14,
-                                center: { lat: initialLat, lng: initialLng }
-                            });
-
-                            // Create a circle centered at the center point
-                            const circle = new google.maps.Circle({
-                                strokeColor: '#FF0000',
-                                strokeOpacity: 0.8,
-                                strokeWeight: 2,
-                                fillColor: '#FF0000',
-                                fillOpacity: 0.35,
-                                map: map,
                                 center: { lat: initialLat, lng: initialLng },
-                                radius: initialRadius // Radius in meters (3 KM)
+                                disableDefaultUI: true,
+                                styles: [
+                                    {
+                                        featureType: "poi",
+                                        stylers: [{ visibility: "off" }]
+                                    },
+                                    {
+                                        featureType: "administrative.locality",
+                                        stylers: [{ visibility: "off" }]
+                                    }
+                                ]
                             });
-
-                            console.log("Circle created:", circle);
 
                             // Add markers to the map
                             coordinates.forEach(coord => {
@@ -110,7 +107,12 @@
                                     position: { lat: coord.latitude, lng: coord.longitude },
                                     map: map,
                                     title: `Latitude: ${coord.latitude}, Longitude: ${coord.longitude}`,
-                                    label: coord.name
+                                    label: {
+                                        text: coord.name,
+                                        fontSize: '10px', // Set the font size here
+                                        fontWeight: 'bold'
+                                    },                              
+                                    icon: coord.locationType === 'person' ? { url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' } : undefined
                                 });
                                 mapMarkers.push(marker);
                             });
@@ -120,10 +122,17 @@
                                 position: { lat: initialLat, lng: initialLng },
                                 map: map,
                                 title: 'Your Location',
-                                label: 'You'
+                                label: {
+                                    text: 'You',
+                                    fontSize: '10px', // Set the font size here
+                                    fontWeight: 'bold'
+                                },
+                                icon: {
+                                    url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+                                }
                             });
                             mapMarkers.push(userMarker);
-
+                            
                             // Center the map on the user's location
                             map.setCenter({ lat: initialLat, lng: initialLng });
                             console.log("Center is :" + map.getCenter());
@@ -164,7 +173,12 @@
                             position: { lat: coord.latitude, lng: coord.longitude },
                             map: map,
                             title: `Latitude: ${coord.latitude}, Longitude: ${coord.longitude}`,
-                            label: coord.name
+                            label: {
+                                text: coord.name,
+                                fontSize: '10px', // Set the font size here
+                                fontWeight: 'bold'
+                            },
+                            icon: coord.locationType === 'person' ? { url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' } : undefined
                         });
                         mapMarkers.push(marker);
                     });
@@ -174,7 +188,14 @@
                         position: { lat: centerLat, lng: centerLong },
                         map: map,
                         title: 'Your Location',
-                        label: 'You'
+                        label: {
+                            text: 'You',
+                            fontSize: '10px', // Set the font size here
+                            fontWeight: 'bold'
+                        },
+                        icon: {
+                            url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+                        }
                     });
                     mapMarkers.push(userMarker);
 
@@ -208,6 +229,7 @@
                 navigator.geolocation.getCurrentPosition(position => {
                     const latitude = position.coords.latitude;
                     const longitude = position.coords.longitude;
+                    const locationType = "person";
 
                     // Send the user's name and location to the server
                     fetch('/api/store-location', {
@@ -215,7 +237,7 @@
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ name, latitude, longitude })
+                        body: JSON.stringify({ name, latitude, longitude, locationType })
                     })
                     .then(response => response.text())
                     .then(message => {
