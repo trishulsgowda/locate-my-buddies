@@ -38,6 +38,7 @@
         <form id="user-form">
             <label for="name">Your Name:</label>
             <input type="text" id="name" name="name" required>
+            <button type="button" onclick="generateRandomName()">Assign Random Name</button>
             <button type="submit">Submit</button>
         </form>
         
@@ -256,6 +257,15 @@
 
             
         });
+
+        function generateRandomName() {
+            fetch('/random-name')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('name').value = data.name;
+            });
+        }
     </script>
+
 </body>
 </html>

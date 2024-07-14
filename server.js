@@ -6,17 +6,17 @@ const port = 3000;
 const { filterCoordinatesWithinRadius} = require('./fetchCoordinates');
 const { getBadmintonCourts} = require('./badmintonCourtsCache'); 
 const bodyParser = require('body-parser');
-
+const { faker } = require('@faker-js/faker');
 
 const apiKey = process.env.GOOGLE_MAPS_API_KEY; // Load the API key from environment variables
-
-
 
 let storedLocations = getBadmintonCourts();
 
 //app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(bodyParser.json());
+
+
 app.get('/locatemybuddies', (req, res) => {
     const fs = require('fs');
     const path = require('path');
@@ -63,6 +63,12 @@ app.get('/api/coordinates', (req, res) => {
     const filteredCoordinates = filterCoordinatesWithinRadius(lat,lng,rad, storedLocations);
     res.json(filteredCoordinates);
 });
+
+app.get('/random-name', (req, res) => {
+    const randomName = faker.person.fullName();
+    console.log('Name:'+ randomName)
+    res.send({ name: randomName });
+  });
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server is running at http://0.0.0.0:${port}`);
