@@ -7,6 +7,8 @@ const { filterCoordinatesWithinRadius} = require('./fetchCoordinates');
 const { getBadmintonCourts} = require('./badmintonCourtsCache'); 
 const bodyParser = require('body-parser');
 const { faker } = require('@faker-js/faker');
+const fs = require('fs');
+const logger = require('./logger');
 
 const apiKey = process.env.GOOGLE_MAPS_API_KEY; // Load the API key from environment variables
 
@@ -35,6 +37,7 @@ app.get('/locatemybuddies', (req, res) => {
 app.post('/api/store-location', (req, res) => {
 
     console.log('Received request:', req.body);
+    logger.info('Received request', { body: req.body });
     const { name, latitude, longitude, locationType } = req.body;
 
     if (!name || !latitude || !longitude) {
@@ -69,6 +72,20 @@ app.get('/random-name', (req, res) => {
     console.log('Name:'+ randomName)
     res.send({ name: randomName });
   });
+
+app.post('/log', (req, res) => {
+    const logData = req.body.logs + '\n';
+
+    // Append the log data to a file
+    fs.appendFile('logs.txt', logData, (err) => {
+        if (err) {
+            console.error('Error writing to file', err);
+            res.status(500).send('Error writing to file');
+        } else {
+            res.status(200).send('Log saved');
+        }
+    });
+});  
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server is running at http://0.0.0.0:${port}`);

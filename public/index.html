@@ -267,5 +267,43 @@
         }
     </script>
 
+<script>
+    (function() {
+        // Save the original console.log function
+        const originalLog = console.log;
+
+        // Helper function to convert arguments to strings
+        function argsToString(args) {
+            return args.map(arg => {
+                if (typeof arg === 'object') {
+                    try {
+                        return JSON.stringify(arg);
+                    } catch (e) {
+                        return '[Circular]';
+                    }
+                }
+                return arg;
+            }).join(' ');
+        }
+
+        // Override console.log
+        console.log = function(...args) {
+            // Call the original console.log function
+            originalLog.apply(console, args);
+
+            // Send the log data to the server
+            fetch('/log', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    logs: argsToString(args)
+                })
+            }).catch(err => originalLog('Error sending log to server:', err));
+        };
+    })();
+</script>
+
 </body>
 </html>
